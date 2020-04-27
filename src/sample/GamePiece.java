@@ -4,33 +4,34 @@ public class GamePiece {
     public enum Type {
         Pawn, Rook, Knight, Bishop, King, Queen
     }
-    public enum Color {
-        White, Black
-    }
+    static boolean white = false;
+    static boolean black = true;
+
 
     String name;
     Type type;
-    Color color;
-    public GamePiece(String name, Type type, Color color) {
+    boolean color;
+    public GamePiece(String name, Type type, boolean color) {
         this.name = name;
         this.type = type;
         this.color = color;
     }
 
-    public boolean isValidMove(int x, int y) {
+    public boolean isValidMove(int i, int j) {
         switch (type) {
             case King:
-                return x == 1 || y == 1;
+                return Math.abs(i) <= 1 && Math.abs(j) <= 1;
             case Pawn:
-                return y == 1;
+                i = color == black ? i: -i;
+                return i == 1 && j == 0;
             case Queen:
-                return x == 0 && y > 0 || x > 0  && y == 0 || x == y || x == -y;
+                return i == 0 && j != 0 || i != 0  && j == 0 || i == j || i == -j;
             case Bishop:
-                return x == y || x == -y;
+                return i == j || i == -j;
             case Rook:
-                return x == 0 && y > 0 || x > 0  && y == 0;
+                return i == 0 && j != 0 || i != 0  && j == 0;
             case Knight:
-                return Math.abs(x) == 1 && Math.abs(y) == 2 || Math.abs(x) == 2 && Math.abs(y) == 1;
+                return Math.abs(i) == 1 && Math.abs(j) == 2 || Math.abs(i) == 2 && Math.abs(j) == 1;
             default:
                 throw new IllegalArgumentException("Invalid Piece");
         }
@@ -39,7 +40,7 @@ public class GamePiece {
     public String getName() {
         return name;
     }
-    public Color getColor() {
+    public boolean getColor() {
         return color;
     }
     public Type getType() {

@@ -16,26 +16,27 @@ public class Controller implements Initializable {
     @FXML
     private Canvas canvas;
     private GraphicsContext gc;
-    private final int tileSize = 100;
+    private final int tileSize = 80;
     public static GameBoard board;
     private boolean firstClick = true;
     private int j;
     private int i;
     @FXML
     void mouseClick(MouseEvent event) {
+        int newJ = (int) (event.getX() / tileSize);
+        int newI = (int) (event.getY() / tileSize);
+        if (!(newJ >= 0 && newJ < GameBoard.boardSize && newI >= 0 && newI < GameBoard.boardSize)) {
+            return;
+        }
         if (firstClick) {
-            j = (int) (event.getX() / tileSize);
-            i = (int) (event.getY() / tileSize);
-            System.out.println("j " + j);
-            System.out.println("i " + i);
+            j = newJ;
+            i = newI;
             firstClick = false;
             drawTile(board, i, j);
         }
         else {
-            int newJ = (int) (event.getX() / tileSize);
-            int newI = (int) (event.getY() / tileSize);
-            System.out.println("j " + newJ);
-            System.out.println("i " + newI);
+            newJ = (int) (event.getX() / tileSize);
+            newI = (int) (event.getY() / tileSize);
             board.move(i,  j, newI, newJ);
             firstClick = true;
             drawTile(board, i, j);
@@ -47,8 +48,8 @@ public class Controller implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gc = canvas.getGraphicsContext2D();
         board = new GameBoard();
+        board.score();
         drawBoard(board);
-
     }
 
 
@@ -73,7 +74,7 @@ public class Controller implements Initializable {
             InputStream input = getClass().getResourceAsStream("/resources/" + piece.getName() + ".png");
 //            System.out.println("/resources/" + piece.getName() + ".png");
             if (input == null) System.out.println("File not found");
-            Image pieceImage = new Image(input, 100, 100, true, true);
+            Image pieceImage = new Image(input, tileSize, tileSize, true, true);
             gc.drawImage(pieceImage, j * tileSize, i * tileSize);
         }
 
