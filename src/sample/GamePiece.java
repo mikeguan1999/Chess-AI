@@ -8,9 +8,11 @@ public class GamePiece {
         White, Black
     }
 
+    String name;
     Type type;
     Color color;
-    public GamePiece(Type type, Color color) {
+    public GamePiece(String name, Type type, Color color) {
+        this.name = name;
         this.type = type;
         this.color = color;
     }
@@ -34,6 +36,9 @@ public class GamePiece {
         }
     }
 
+    public String getName() {
+        return name;
+    }
     public Color getColor() {
         return color;
     }

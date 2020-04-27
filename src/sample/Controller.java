@@ -17,7 +17,6 @@ public class Controller implements Initializable {
     private Canvas canvas;
     private GraphicsContext gc;
     private final int tileSize = 100;
-    private Image bk;
     public static GameBoard board;
     @FXML
     void mouseClick(MouseEvent event) {
@@ -30,10 +29,8 @@ public class Controller implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gc = canvas.getGraphicsContext2D();
-        InputStream input = getClass().getResourceAsStream("/resources/bb.png");
-        if (input == null) System.out.println("File not found");
-        bk = new Image(input, 100, 100, true, true);
         drawBoard(new GameBoard());
+
     }
 
 
@@ -43,12 +40,19 @@ public class Controller implements Initializable {
         } else {
             gc.setFill(Color.rgb(213,136,54));
         }
-        gc.fillRect(i * tileSize, j * tileSize, i + tileSize, j + tileSize);
-        if (board.pieceAt(i, j) != null) {
-            gc.drawImage(bk, 0 , 0);
+        gc.fillRect(j * tileSize, i * tileSize, tileSize, tileSize);
+        GamePiece piece = board.pieceAt(i, j);
+        if (piece != null) {
+            InputStream input = getClass().getResourceAsStream("/resources/" + piece.getName() + ".png");
+//            System.out.println("/resources/" + piece.getName() + ".png");
+            if (input == null) System.out.println("File not found");
+            Image pieceImage = new Image(input, 100, 100, true, true);
+            gc.drawImage(pieceImage, j * tileSize, i * tileSize);
         }
 
     }
+
+//    public void printB(GameBoard)
 
     public void drawBoard(GameBoard board) {
         for (int i = 0; i < GameBoard.boardSize; i++) {
