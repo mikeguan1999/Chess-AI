@@ -36,6 +36,7 @@ public class Controller implements Initializable {
         drawBoard(new GameBoard());
     }
 
+    
     public void drawTile(GameBoard board, int i, int j) {
         if ((i + j) % 2 == 0) {
             gc.setFill(Color.rgb(105,20,14));
