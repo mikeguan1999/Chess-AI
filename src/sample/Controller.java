@@ -18,27 +18,54 @@ public class Controller implements Initializable {
     private GraphicsContext gc;
     private final int tileSize = 100;
     public static GameBoard board;
+    private boolean firstClick = true;
+    private int j;
+    private int i;
     @FXML
     void mouseClick(MouseEvent event) {
-        int x = (int) (event.getX() / tileSize);
-        int y = (int) (event.getY() / tileSize);
-        System.out.println(x);
-        System.out.println(y);
+        if (firstClick) {
+            j = (int) (event.getX() / tileSize);
+            i = (int) (event.getY() / tileSize);
+            System.out.println("j " + j);
+            System.out.println("i " + i);
+            firstClick = false;
+            drawTile(board, i, j);
+        }
+        else {
+            int newJ = (int) (event.getX() / tileSize);
+            int newI = (int) (event.getY() / tileSize);
+            System.out.println("j " + newJ);
+            System.out.println("i " + newI);
+            board.move(i,  j, newI, newJ);
+            firstClick = true;
+            drawTile(board, i, j);
+            drawTile(board, newI, newJ);
+        }
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gc = canvas.getGraphicsContext2D();
-        drawBoard(new GameBoard());
+        board = new GameBoard();
+        drawBoard(board);
 
     }
 
 
     public void drawTile(GameBoard board, int i, int j) {
         if ((i + j) % 2 == 0) {
-            gc.setFill(Color.rgb(105,20,14));
+            if(firstClick) {
+                gc.setFill(Color.rgb(105, 20, 14));
+            } else {
+                gc.setFill(Color.rgb(70,0,0));
+            }
+
         } else {
-            gc.setFill(Color.rgb(213,136,54));
+            if (firstClick) {
+                gc.setFill(Color.rgb(213, 136, 54));
+            } else {
+                gc.setFill(Color.rgb(180,90, 30));
+            }
         }
         gc.fillRect(j * tileSize, i * tileSize, tileSize, tileSize);
         GamePiece piece = board.pieceAt(i, j);
