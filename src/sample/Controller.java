@@ -13,6 +13,8 @@ import java.net.URL;
 import java.util.PriorityQueue;
 import java.util.ResourceBundle;
 
+import static sample.GamePiece.black;
+
 public class Controller implements Initializable {
     @FXML
     private Canvas canvas;
@@ -40,8 +42,14 @@ public class Controller implements Initializable {
             newI = (int) (event.getY() / tileSize);
             board.move(i,  j, newI, newJ);
             firstClick = true;
-            drawTile(board, i, j);
-            drawTile(board, newI, newJ);
+//            drawTile(board, i, j);
+//            drawTile(board, newI, newJ);
+            drawBoard(board);
+
+            if (board.turn == black) {
+                board = board.computerMove();
+                drawBoard(board);
+            }
         }
     }
 

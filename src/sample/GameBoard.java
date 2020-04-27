@@ -80,7 +80,7 @@ public class GameBoard implements Comparable<GameBoard> {
     }
 
     /**
-     * Creates pieces and puts them on the board at initial positons
+     * Creates pieces and puts them on the board at initial positions
      */
     public void initializeBoard() {
         String[] mappings = new String[] {"r", "kn", "b", "q", "k", "b", "kn", "r"};
@@ -116,6 +116,7 @@ public class GameBoard implements Comparable<GameBoard> {
                     return false;
                 }
             }
+            return true;
         }
         return false;
     }
@@ -158,6 +159,14 @@ public class GameBoard implements Comparable<GameBoard> {
         }
         return false;
     }
+    public boolean pawnPossibleMove(boolean color, int startI, int startJ, int endI, int endJ) {
+        if (startJ == endJ) {
+           return Math.abs(endI - startI) == 1 && pieceAt(endI, endJ) == null || startI == (color? 1: 6);
+        }
+        else {
+            return pieceAt(endI,endJ) != null;
+        }
+    }
     /**
      * Returns whether a move is legal and possible
       * @param piece The piece to move
@@ -176,7 +185,7 @@ public class GameBoard implements Comparable<GameBoard> {
                 case Bishop: return bishopPossibleMove(startI, startJ, endI, endJ);
                 case Queen: return (rookPossibleMove(startI, startJ, endI, endJ)
                         || bishopPossibleMove(startI, startJ, endI, endJ));
-                case Pawn: return true;
+                case Pawn: return pawnPossibleMove(piece.color, startI, startJ, endI, endJ);
             }
             return true;
         }
@@ -210,6 +219,10 @@ public class GameBoard implements Comparable<GameBoard> {
             board[startI][startJ] = null;
             turn = !turn;
         }
+    }
+
+    public GameBoard computerMove() {
+        return states().poll();
     }
 
 
@@ -265,10 +278,10 @@ public class GameBoard implements Comparable<GameBoard> {
         pieceValues.put(Knight, 30);
         pieceValues.put(Pawn, 10);
         for (GamePiece piece : blackPieces) {
-            score += pieceValues.get(piece.getType());
+            score -= pieceValues.get(piece.getType());
         }
         for (GamePiece piece : whitePieces) {
-            score -= pieceValues.get(piece.getType());
+            score += pieceValues.get(piece.getType());
         }
         return score;
     }
