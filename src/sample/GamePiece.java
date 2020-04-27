@@ -1,5 +1,6 @@
 package sample;
 
+
 public class GamePiece {
     public enum Type {
         Pawn, Rook, Knight, Bishop, King, Queen
@@ -23,7 +24,7 @@ public class GamePiece {
                 return Math.abs(i) <= 1 && Math.abs(j) <= 1;
             case Pawn:
                 i = color == black ? i: -i;
-                return i == 1 && j == 0;
+                return (i == 2) && j == 0  || i == 1 && Math.abs(j) <= 1;
             case Queen:
                 return i == 0 && j != 0 || i != 0  && j == 0 || i == j || i == -j;
             case Bishop:
@@ -45,5 +46,10 @@ public class GamePiece {
     }
     public Type getType() {
         return type;
+    }
+
+    @Override
+    public String toString() {
+        return name.length() == 2? name + " ": name;
     }
 }

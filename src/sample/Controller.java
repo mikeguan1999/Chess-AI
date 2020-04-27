@@ -10,6 +10,7 @@ import javafx.scene.paint.Color;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.PriorityQueue;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -48,8 +49,24 @@ public class Controller implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gc = canvas.getGraphicsContext2D();
         board = new GameBoard();
-        board.score();
+        long time = System.nanoTime();
+        for (int k = 0; k < 1000000; k++) {
+            GameBoard board1 = new GameBoard(board);
+        }
         drawBoard(board);
+//        System.out.println(board);
+
+        PriorityQueue<GameBoard> queue = board.states();
+        int count = 0;
+        while (!queue.isEmpty()) {
+            GameBoard newBoard = queue.poll();
+            System.out.println(newBoard);
+            System.out.println(newBoard.score());
+            count++;
+        }
+        System.out.println("count: " + count);
+        System.out.print("time: ");
+        System.out.println((System.nanoTime() - time)/100000000);
     }
 
 
