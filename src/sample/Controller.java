@@ -26,32 +26,47 @@ public class Controller implements Initializable {
     private int i;
     @FXML
     void mouseClick(MouseEvent event) {
-        int newJ = (int) (event.getX() / tileSize);
-        int newI = (int) (event.getY() / tileSize);
-        if (!(newJ >= 0 && newJ < GameBoard.boardSize && newI >= 0 && newI < GameBoard.boardSize)) {
-            return;
-        }
-        if (firstClick) {
-            j = newJ;
-            i = newI;
-            firstClick = false;
-            drawTile(board, i, j);
-            for (int[] move : board.possibleMovesFrom(i, j)) {
-                drawTile(board, move[0], move[1]);
+        if (!board.gameOver) {
+            int newJ = (int) (event.getX() / tileSize);
+            int newI = (int) (event.getY() / tileSize);
+            if (!(newJ >= 0 && newJ < GameBoard.boardSize && newI >= 0 && newI < GameBoard.boardSize)) {
+                return;
             }
-        }
-        else {
-            newJ = (int) (event.getX() / tileSize);
-            newI = (int) (event.getY() / tileSize);
-            board.move(i,  j, newI, newJ);
-            firstClick = true;
+            if (firstClick) {
+                j = newJ;
+                i = newI;
+                firstClick = false;
+                drawTile(board, i, j, false);
+                for (int[] move : board.possibleMovesFrom(i, j)) {
+                    drawTile(board, move[0], move[1], false);
+                }
+            } else {
+                //my turn
+                newJ = (int) (event.getX() / tileSize);
+                newI = (int) (event.getY() / tileSize);
+                board.move(i, j, newI, newJ);
+                firstClick = true;
 //            drawTile(board, i, j);
 //            drawTile(board, newI, newJ);
-            drawBoard(board);
-
-            if (board.turn == black) {
-                board = board.computerMove();
                 drawBoard(board);
+
+                if (board.gameOver) {
+                    System.out.println("Game Over! The Winner is " + (board.winner ? "Computer" : "Player"));
+                    return;
+                }
+
+
+                //blackturn
+                if (board.turn == black) {
+                    board = board.computerMove();
+                    drawBoard(board);
+                    drawTile(board, board.prevStartI, board.prevStartJ, true);
+                    drawTile(board, board.prevEndI, board.prevEndJ, true);
+                }
+                if (board.gameOver) {
+                    System.out.println("Game Over! The Winner is " + (board.winner ? "Computer" : "Player"));
+                    return;
+                }
             }
         }
     }
@@ -82,16 +97,16 @@ public class Controller implements Initializable {
     }
 
 
-    public void drawTile(GameBoard board, int i, int j) {
+    public void drawTile(GameBoard board, int i, int j, boolean darken) {
         if ((i + j) % 2 == 0) {
-            if(firstClick) {
+            if(firstClick && !darken) {
                 gc.setFill(Color.rgb(105, 20, 14));
             } else {
                 gc.setFill(Color.rgb(40,0,0));
             }
 
         } else {
-            if (firstClick) {
+            if (firstClick && !darken) {
                 gc.setFill(Color.rgb(213, 136, 54));
             } else {
                 gc.setFill(Color.rgb(200,50, 0));
@@ -114,7 +129,7 @@ public class Controller implements Initializable {
     public void drawBoard(GameBoard board) {
         for (int i = 0; i < GameBoard.boardSize; i++) {
             for (int j = 0; j < GameBoard.boardSize; j++) {
-                drawTile(board, i, j);
+                drawTile(board, i, j, false);
             }
         }
 

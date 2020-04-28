@@ -11,9 +11,17 @@ public class GameBoard implements Comparable<GameBoard> {
     public static final int boardSize = 8;
     static boolean white = false;
     static boolean black = true;
-    static int minimaxDepth = 3;
+    static int minimaxDepth = 4;
     boolean turn;
-    String winner;
+    boolean whiteCastle;
+    boolean blackCastle;
+    boolean winner;
+    boolean gameOver;
+    int prevStartI;
+    int prevStartJ;
+    int prevEndI;
+    int prevEndJ;
+
 
     /**
      * Creates a new Gameboard instance with initial piece placement
@@ -24,7 +32,14 @@ public class GameBoard implements Comparable<GameBoard> {
         whitePieces = new HashSet<GamePiece>();
         initializeBoard();
         turn = white;
-        winner = "";
+        winner = false;
+        gameOver = false;
+        whiteCastle = true;
+        blackCastle = false;
+        prevEndI = -1;
+        prevEndJ = -1;
+        prevStartJ = -1;
+        prevStartI = -1;
     }
 
     /**
@@ -183,16 +198,21 @@ public class GameBoard implements Comparable<GameBoard> {
      */
     public boolean possibleMove(GamePiece piece, int startI, int startJ, int endI, int endJ) {
         if (withinBounds(startI, startJ) && withinBounds(endI, endJ) && piece != null && piece.getColor() == turn
-                && piece.isValidMove(endI - startI, endJ - startJ)
         && (pieceAt(endI, endJ) == null || pieceAt(endI, endJ).color != turn)) {
-            switch (piece.type) {
-                case Rook: return rookPossibleMove(startI, startJ, endI, endJ);
-                case Bishop: return bishopPossibleMove(startI, startJ, endI, endJ);
-                case Queen: return (rookPossibleMove(startI, startJ, endI, endJ)
-                        || bishopPossibleMove(startI, startJ, endI, endJ));
-                case Pawn: return pawnPossibleMove(piece.color, startI, startJ, endI, endJ);
+            if (piece.isValidMove(endI - startI, endJ - startJ)) {
+                switch (piece.type) {
+                    case Rook:
+                        return rookPossibleMove(startI, startJ, endI, endJ);
+                    case Bishop:
+                        return bishopPossibleMove(startI, startJ, endI, endJ);
+                    case Queen:
+                        return (rookPossibleMove(startI, startJ, endI, endJ)
+                                || bishopPossibleMove(startI, startJ, endI, endJ));
+                    case Pawn:
+                        return pawnPossibleMove(piece.color, startI, startJ, endI, endJ);
+                }
+                return true;
             }
-            return true;
         }
         return false;
     }
@@ -282,6 +302,11 @@ public class GameBoard implements Comparable<GameBoard> {
         GamePiece piece = pieceAt(startI, startJ);
         if (possibleMove(piece, startI, startJ, endI, endJ)) {
             if (board[endI][endJ] != null && board[endI][endJ].getColor() != turn) {
+                //Game over if king captured
+                if (board[endI][endJ].type == King) {
+                    winner = turn;
+                    gameOver = true;
+                }
                 //Can only capture other color
                 if (turn == black) {
                     assert whitePieces.contains(board[endI][endJ]);
@@ -294,6 +319,10 @@ public class GameBoard implements Comparable<GameBoard> {
             }
             board[endI][endJ] = piece;
             board[startI][startJ] = null;
+            prevStartI = startI;
+            prevStartJ = startJ;
+            prevEndI = endI;
+            prevEndJ = endJ;
             turn = !turn;
         }
     }
@@ -305,21 +334,52 @@ public class GameBoard implements Comparable<GameBoard> {
 
 //    public void addRookMoves(int i, int j, )
 
-    PriorityQueue<GameBoard> states() {
-        PriorityQueue<GameBoard> moves = new PriorityQueue<GameBoard>();
+//    PriorityQueue<GameBoard> states() {
+//        PriorityQueue<GameBoard> moves = new PriorityQueue<GameBoard>();
+//        for (int i = 0; i < boardSize; i++) {
+//            for (int j = 0; j < boardSize; j++) {
+//                GamePiece piece = pieceAt(i, j);
+//                if (piece != null && (piece.color == turn)) {
+//                    for (int k = 0; k < boardSize; k++) {
+//                        for (int l = 0; l < boardSize; l++) {
+//                            if (possibleMove(piece, i, j, k, l)) {
+//                                GameBoard newBoard = new GameBoard(this);
+//                                newBoard.move(i,j,k,l);
+//                                moves.add(newBoard);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        return moves;
+//    }
+
+    public HashSet<GameBoard> states() {
+        HashSet<GameBoard> moves = new HashSet<GameBoard>();
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
                 GamePiece piece = pieceAt(i, j);
                 if (piece != null && (piece.color == turn)) {
-                    for (int k = 0; k < boardSize; k++) {
-                        for (int l = 0; l < boardSize; l++) {
-                            if (possibleMove(piece, i, j, k, l)) {
-                                GameBoard newBoard = new GameBoard(this);
-                                newBoard.move(i,j,k,l);
-                                moves.add(newBoard);
-                            }
+                    LinkedList<int[]> possibleMoves = possibleMovesFrom(i, j);
+                    for (int[] possibleMove: possibleMoves) {
+                        if (possibleMove(piece, i, j, possibleMove[0], possibleMove[1])) {
+                            GameBoard newBoard = new GameBoard(this);
+                            newBoard.move(i,j,possibleMove[0],possibleMove[1]);
+                            moves.add(newBoard);
                         }
                     }
+
+
+//                    for (int k = 0; k < boardSize; k++) {
+//                        for (int l = 0; l < boardSize; l++) {
+//                            if (possibleMove(piece, i, j, k, l)) {
+//                                GameBoard newBoard = new GameBoard(this);
+//                                newBoard.move(i,j,k,l);
+//                                moves.add(newBoard);
+//                            }
+//                        }
+//                    }
                 }
             }
         }
@@ -344,21 +404,26 @@ public class GameBoard implements Comparable<GameBoard> {
         return str;
     }
 
+    public static int valueOfType(GamePiece.Type type) {
+        switch (type) {
+            case King: return 900;
+            case Queen: return 90;
+            case Rook: return 50;
+            case Bishop:
+            case Knight:
+                return 30;
+            case Pawn: return 10;
+            default: return 0;
+        }
+    }
     //Minimax Algorithm
     public int score() {
         int score = 0;
-        HashMap<GamePiece.Type, Integer> pieceValues = new HashMap<GamePiece.Type, Integer>();
-        pieceValues.put(King, 900);
-        pieceValues.put(Queen, 90);
-        pieceValues.put(Rook, 50);
-        pieceValues.put(Bishop, 30);
-        pieceValues.put(Knight, 30);
-        pieceValues.put(Pawn, 10);
         for (GamePiece piece : blackPieces) {
-            score += pieceValues.get(piece.getType());
+            score += valueOfType(piece.getType());
         }
         for (GamePiece piece : whitePieces) {
-            score -= pieceValues.get(piece.getType());
+            score -= valueOfType(piece.getType());
         }
         return score;
     }
@@ -373,10 +438,12 @@ public class GameBoard implements Comparable<GameBoard> {
         GameBoard best = null;
         for (GameBoard state: states()) {
             GameBoard nextState = state.minTurn(a, b, depth - 1);
-            int nextScore = nextState.score();
-            if (nextScore > score) {
-                score = nextScore;
-                best = state;
+            if (nextState != null) {
+                int nextScore = nextState.score();
+                if (nextScore > score) {
+                    score = nextScore;
+                    best = state;
+                }
             }
             if (score >= b) return best;
             a = Math.max(a, score);
@@ -394,15 +461,16 @@ public class GameBoard implements Comparable<GameBoard> {
         GameBoard best = null;
         for (GameBoard state: states()) {
             GameBoard nextState = state.maxTurn(a, b, depth - 1);
-            int nextScore = nextState.score();
-            if (nextScore < score) {
-                score = nextScore;
-                best = state;
+            if (nextState != null) {
+                int nextScore = nextState.score();
+                if (nextScore < score) {
+                    score = nextScore;
+                    best = state;
+                }
             }
             if (score <= a) return best;
             b = Math.min(b, score);
         }
-        System.out.println(best);
         return best;
     }
 
