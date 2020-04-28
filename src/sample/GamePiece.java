@@ -12,6 +12,10 @@ public class GamePiece {
     String name;
     Type type;
     boolean color;
+    int lastStartI;
+    int lastStartJ;
+    int lastEndI;
+    int lastEndJ;
     public GamePiece(String name, Type type, boolean color) {
         this.name = name;
         this.type = type;

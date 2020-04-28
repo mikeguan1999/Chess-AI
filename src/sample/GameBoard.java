@@ -11,7 +11,9 @@ public class GameBoard implements Comparable<GameBoard> {
     public static final int boardSize = 8;
     static boolean white = false;
     static boolean black = true;
+    static int minimaxDepth = 3;
     boolean turn;
+    String winner;
 
     /**
      * Creates a new Gameboard instance with initial piece placement
@@ -22,6 +24,7 @@ public class GameBoard implements Comparable<GameBoard> {
         whitePieces = new HashSet<GamePiece>();
         initializeBoard();
         turn = white;
+        winner = "";
     }
 
     /**
@@ -131,7 +134,7 @@ public class GameBoard implements Comparable<GameBoard> {
                 }
             }
             else {
-                for (int j = startJ + 1; j < endJ; j++) {
+                for (int j = endJ + 1; j < startJ; j++) {
                     if (pieceAt(startI, j) != null) {
                         return false;
                     }
@@ -161,12 +164,14 @@ public class GameBoard implements Comparable<GameBoard> {
     }
     public boolean pawnPossibleMove(boolean color, int startI, int startJ, int endI, int endJ) {
         if (startJ == endJ) {
-           return Math.abs(endI - startI) == 1 && pieceAt(endI, endJ) == null || startI == (color? 1: 6);
+           return Math.abs(endI - startI) == 1 && pieceAt(endI, endJ) == null || startI == (color? 1: 6)
+                   && pieceAt(endI, endJ) == null;
         }
         else {
             return pieceAt(endI,endJ) != null;
         }
     }
+
     /**
      * Returns whether a move is legal and possible
       * @param piece The piece to move
@@ -174,7 +179,7 @@ public class GameBoard implements Comparable<GameBoard> {
      * @param startJ Starting col
      * @param endI Ending row
      * @param endJ Ending col
-     * @return
+     * @return true if it is a possible move
      */
     public boolean possibleMove(GamePiece piece, int startI, int startJ, int endI, int endJ) {
         if (withinBounds(startI, startJ) && withinBounds(endI, endJ) && piece != null && piece.getColor() == turn
@@ -192,6 +197,80 @@ public class GameBoard implements Comparable<GameBoard> {
         return false;
     }
 
+
+
+
+    public void addPossibleKingMoves(LinkedList<int[]> moves, int i, int j) {
+        for (int k = -1; k <= 1; k++) {
+            for (int l = -1; l <= 1; l++) {
+                if (possibleMove(pieceAt(i, j), i, j, i + k, j + l))  {
+                    moves.add(new int[] {i + k, j + l});
+                }
+            }
+        }
+    }
+    public void addPossibleKnightMoves(LinkedList<int[]> moves, int i, int j) {
+        int[][] posMoves = new int[][] {{1,2},{1,-2},{2,1},{2,-1},{-1,2},{-1,-2},{-2,1},{-2,-1}};
+        for (int[] arr : posMoves) {
+            if (possibleMove(pieceAt(i, j), i, j, i + arr[0], j + arr[1])) {
+                moves.add(new int[] {i + arr[0], j + arr[1]});
+            }
+        }
+    }
+    public void addPossibleRookMoves(LinkedList<int[]> moves, int i, int j) {
+        for (int k = 0; k < boardSize; k++) {
+            if (possibleMove(pieceAt(i, j), i, j, i, k)) {
+                moves.add(new int[] {i, k});
+            }
+            if (possibleMove(pieceAt(i, j), i, j, k, j)) {
+                moves.add(new int[] {k, j});
+            }
+        }
+    }
+    private void addPossibleBishopMoves(LinkedList<int[]> moves, int i, int j) {
+        for (int k = -boardSize; k < boardSize; k++) {
+            if(possibleMove(pieceAt(i, j), i, j, i + k, j + k)) {
+                moves.add(new int[] {i + k, j + k});
+            }
+            if (possibleMove(pieceAt(i, j), i, j, i + k, j - k)) {
+                moves.add(new int[] {i + k, j - k});
+            }
+        }
+    }
+    private void addPossiblePawnMoves(LinkedList<int[]> moves, int i, int j) {
+        int multiplier = pieceAt(i, j).color? 1 : -1;
+        if (possibleMove(pieceAt(i, j), i, j, i + 2 * multiplier, j)) {
+            moves.add(new int[] {i + 2 * multiplier, j});
+        }
+        if (possibleMove(pieceAt(i, j), i, j, i + multiplier, j)) {
+            moves.add(new int[] {i + multiplier, j});
+        }
+        if (possibleMove(pieceAt(i, j), i, j, i + multiplier, j + 1)) {
+            moves.add(new int[] {i + multiplier, j + 1});
+        }
+        if (possibleMove(pieceAt(i, j), i, j, i + multiplier, j - 1)) {
+            moves.add(new int[] {i + multiplier, j - 1});
+        }
+    }
+
+    //possible moves from i, j
+    public LinkedList<int[]> possibleMovesFrom(int i, int j) {
+        GamePiece piece = pieceAt(i, j);
+        LinkedList<int[]> list = new LinkedList<int[]>();
+        if (piece != null /*&& piece.color == turn*/) {
+            switch (piece.type) {
+                case King: addPossibleKingMoves(list, i, j);
+                case Knight: addPossibleKnightMoves(list, i, j);
+                case Rook: addPossibleRookMoves(list, i, j);
+                case Bishop: addPossibleBishopMoves(list, i, j);
+                case Queen: addPossibleRookMoves(list, i, j); addPossibleBishopMoves(list, i, j);
+                case Pawn: addPossiblePawnMoves(list, i, j);
+            }
+        }
+        return list;
+    }
+
+
     /**
      * Move a piece only if it is a legal move. If not, do nothing
      * @param startI The starting row
@@ -207,11 +286,9 @@ public class GameBoard implements Comparable<GameBoard> {
                 if (turn == black) {
                     assert whitePieces.contains(board[endI][endJ]);
                     whitePieces.remove(board[endI][endJ]);
-                    System.out.println(whitePieces);
                 }
                 else {
                     assert blackPieces.contains(board[endI][endJ]);
-                    System.out.println(whitePieces.contains(board[endI][endJ]));
                     blackPieces.remove(board[endI][endJ]);
                 }
             }
@@ -222,7 +299,7 @@ public class GameBoard implements Comparable<GameBoard> {
     }
 
     public GameBoard computerMove() {
-        return states().poll();
+        return maxTurn(Integer.MIN_VALUE, Integer.MAX_VALUE, minimaxDepth);
     }
 
 
@@ -278,27 +355,60 @@ public class GameBoard implements Comparable<GameBoard> {
         pieceValues.put(Knight, 30);
         pieceValues.put(Pawn, 10);
         for (GamePiece piece : blackPieces) {
-            score -= pieceValues.get(piece.getType());
+            score += pieceValues.get(piece.getType());
         }
         for (GamePiece piece : whitePieces) {
-            score += pieceValues.get(piece.getType());
+            score -= pieceValues.get(piece.getType());
         }
         return score;
     }
 
     //Computer Turn (black)
-    public static GameBoard maxTurn(int a, int b) {
-        return null;
+    public GameBoard maxTurn(int a, int b, int depth) {
+        assert turn == black;
+        if (depth == 0) {
+            return this;
+        }
+        int score = Integer.MIN_VALUE;
+        GameBoard best = null;
+        for (GameBoard state: states()) {
+            GameBoard nextState = state.minTurn(a, b, depth - 1);
+            int nextScore = nextState.score();
+            if (nextScore > score) {
+                score = nextScore;
+                best = state;
+            }
+            if (score >= b) return best;
+            a = Math.max(a, score);
+        }
+        return best;
     }
 
     //User Turn
 
-    public static GameBoard minTurn(int a, int b) {
-        return null;
+    public GameBoard minTurn(int a, int b, int depth) {
+        if (depth == 0) {
+            return this;
+        }
+        int score = Integer.MAX_VALUE;
+        GameBoard best = null;
+        for (GameBoard state: states()) {
+            GameBoard nextState = state.maxTurn(a, b, depth - 1);
+            int nextScore = nextState.score();
+            if (nextScore < score) {
+                score = nextScore;
+                best = state;
+            }
+            if (score <= a) return best;
+            b = Math.min(b, score);
+        }
+        System.out.println(best);
+        return best;
     }
 
     @Override
     public int compareTo(GameBoard board2) {
+//        int multiplier = turn? 1 : -1;
         int score1 = score();
         int score2 = board2.score();
         if (score1 < score2) return -1;

@@ -36,6 +36,9 @@ public class Controller implements Initializable {
             i = newI;
             firstClick = false;
             drawTile(board, i, j);
+            for (int[] move : board.possibleMovesFrom(i, j)) {
+                drawTile(board, move[0], move[1]);
+            }
         }
         else {
             newJ = (int) (event.getX() / tileSize);
@@ -64,17 +67,18 @@ public class Controller implements Initializable {
         drawBoard(board);
 //        System.out.println(board);
 
-        PriorityQueue<GameBoard> queue = board.states();
-        int count = 0;
-        while (!queue.isEmpty()) {
-            GameBoard newBoard = queue.poll();
-            System.out.println(newBoard);
-            System.out.println(newBoard.score());
-            count++;
-        }
-        System.out.println("count: " + count);
-        System.out.print("time: ");
-        System.out.println((System.nanoTime() - time)/100000000);
+//        PriorityQueue<GameBoard> queue = board.states();
+//        int count = 0;
+//        while (!queue.isEmpty()) {
+//            GameBoard newBoard = queue.poll();
+//            System.out.println(newBoard);
+//            System.out.println(newBoard.score());
+//            count++;
+//        }
+//        System.out.println("count: " + count);
+//        System.out.print("time: ");
+//        System.out.println((System.nanoTime() - time)/100000000);
+//        displayWinner(board);
     }
 
 
@@ -83,14 +87,14 @@ public class Controller implements Initializable {
             if(firstClick) {
                 gc.setFill(Color.rgb(105, 20, 14));
             } else {
-                gc.setFill(Color.rgb(70,0,0));
+                gc.setFill(Color.rgb(40,0,0));
             }
 
         } else {
             if (firstClick) {
                 gc.setFill(Color.rgb(213, 136, 54));
             } else {
-                gc.setFill(Color.rgb(180,90, 30));
+                gc.setFill(Color.rgb(200,50, 0));
             }
         }
         gc.fillRect(j * tileSize, i * tileSize, tileSize, tileSize);
@@ -114,5 +118,12 @@ public class Controller implements Initializable {
             }
         }
 
+    }
+    public void displayWinner(GameBoard board) {
+        InputStream input = getClass().getResourceAsStream("/resources/winner.png");
+//            System.out.println("/resources/" + piece.getName() + ".png");
+        if (input == null) System.out.println("File not found");
+        Image pieceImage = new Image(input, tileSize * 4, tileSize * 2, true, true);
+        gc.drawImage(pieceImage, 2 * tileSize, 2 * tileSize);
     }
 }
