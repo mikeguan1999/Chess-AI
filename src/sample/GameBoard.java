@@ -290,6 +290,25 @@ public class GameBoard implements Comparable<GameBoard> {
         return list;
     }
 
+    public void pawnPromotion(GamePiece pawn, int i, int j) {
+        if (pawn.getType() == Pawn && (i == 0 || i == 7)) {
+            //black
+            GamePiece queen;
+            if (pawn.getColor())  {
+                queen = new GamePiece("bq", Queen, pawn.color);
+                blackPieces.remove(pawn);
+                blackPieces.add(queen);
+            }
+            //white
+            else {
+                queen = new GamePiece("wq", Queen, pawn.color);
+                whitePieces.remove(pawn);
+                whitePieces.add(queen);
+            }
+            board[i][j] = queen;
+        }
+        return;
+    }
 
     /**
      * Move a piece only if it is a legal move. If not, do nothing
@@ -323,6 +342,7 @@ public class GameBoard implements Comparable<GameBoard> {
             prevStartJ = startJ;
             prevEndI = endI;
             prevEndJ = endJ;
+            pawnPromotion(piece, endI, endJ);
             turn = !turn;
         }
     }

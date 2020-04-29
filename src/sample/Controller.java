@@ -102,7 +102,7 @@ public class Controller implements Initializable {
             if(firstClick && !darken) {
                 gc.setFill(Color.rgb(105, 20, 14));
             } else {
-                gc.setFill(Color.rgb(40,0,0));
+                gc.setFill(Color.rgb(60,0,0));
             }
 
         } else {
