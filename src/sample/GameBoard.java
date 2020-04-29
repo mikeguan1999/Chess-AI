@@ -180,7 +180,7 @@ public class GameBoard implements Comparable<GameBoard> {
     public boolean pawnPossibleMove(boolean color, int startI, int startJ, int endI, int endJ) {
         if (startJ == endJ) {
            return Math.abs(endI - startI) == 1 && pieceAt(endI, endJ) == null || startI == (color? 1: 6)
-                   && pieceAt(endI, endJ) == null;
+                   && pieceAt(endI, endJ) == null && pieceAt(color? 2: 5, startJ) == null;
         }
         else {
             return pieceAt(endI,endJ) != null;
