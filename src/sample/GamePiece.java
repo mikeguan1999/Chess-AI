@@ -12,10 +12,15 @@ public class GamePiece {
     String name;
     Type type;
     boolean color;
-    public GamePiece(String name, Type type, boolean color) {
+    int i;
+    int j;
+
+    public GamePiece(String name, Type type, boolean color, int i, int j) {
         this.name = name;
         this.type = type;
         this.color = color;
+        this.i = i;
+        this.j = j;
     }
 
     public boolean isValidMove(int i, int j) {
