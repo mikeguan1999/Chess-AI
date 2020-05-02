@@ -10,12 +10,13 @@ import javafx.scene.paint.Color;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.PriorityQueue;
 import java.util.ResourceBundle;
 
 import static sample.GamePiece.black;
 
-public class Controller implements Initializable {
+public class Controller implements Initializable, Runnable{
     @FXML
     private Canvas canvas;
     private GraphicsContext gc;
@@ -46,18 +47,29 @@ public class Controller implements Initializable {
                 newI = (int) (event.getY() / tileSize);
                 board.move(i, j, newI, newJ);
                 firstClick = true;
-//            drawTile(board, i, j);
-//            drawTile(board, newI, newJ);
-                drawBoard(board);
+//            drawTile(board, i, j, true);
+//            drawTile(board, newI, newJ, true);
+//                drawBoard(board);
 
                 if (board.gameOver) {
                     System.out.println("Game Over! The Winner is " + (board.winner ? "Computer" : "Player"));
                     return;
                 }
+                HashSet<GameBoard> queue = board.states();
+                int count = 0;
+                for (GameBoard newBoard: queue) {
+                    System.out.println(newBoard);
+                    System.out.println(newBoard.score());
+                    count++;
+
+                }
+                System.out.println("\n count: " + count);
 
 
+                drawBoard(board);
                 //blackturn
                 if (board.turn == black) {
+                    System.out.println("hi");
                     board = board.computerMove();
                     drawBoard(board);
                     drawTile(board, board.prevStartI, board.prevStartJ, true);
@@ -71,6 +83,10 @@ public class Controller implements Initializable {
         }
     }
 
+//    public void makeMove(int i, int j) {
+//
+//    }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gc = canvas.getGraphicsContext2D();
@@ -80,15 +96,16 @@ public class Controller implements Initializable {
             GameBoard board1 = new GameBoard(board);
         }
         drawBoard(board);
+        run();
 //        System.out.println(board);
 
-//        PriorityQueue<GameBoard> queue = board.states();
+//        HashSet<GameBoard> queue = board.states();
 //        int count = 0;
-//        while (!queue.isEmpty()) {
-//            GameBoard newBoard = queue.poll();
+//        for (GameBoard newBoard: queue) {
 //            System.out.println(newBoard);
 //            System.out.println(newBoard.score());
 //            count++;
+//
 //        }
 //        System.out.println("count: " + count);
 //        System.out.print("time: ");
@@ -140,5 +157,10 @@ public class Controller implements Initializable {
         if (input == null) System.out.println("File not found");
         Image pieceImage = new Image(input, tileSize * 4, tileSize * 2, true, true);
         gc.drawImage(pieceImage, 2 * tileSize, 2 * tileSize);
+    }
+
+    @Override
+    public void run() {
+        System.out.println("hihihi");
     }
 }
